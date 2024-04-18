@@ -1,0 +1,52 @@
+{
+	"name": "glue-pyspark-poetry",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {
+			"GLUE_VERSION": "4.0.0",
+			"POETRY_VERSION": "1.8.2"
+		}
+	},
+	"workspaceFolder": "/home/glue_user/workspace",
+	"runArgs": ["--name", "${localWorkspaceFolderBasename}_${localEnv:USER}${localEnv:USERNAME}_glue-pyspark-poetry_devcontainer"],
+	"workspaceMount": "source=${localWorkspaceFolder},target=/home/glue_user/workspace,type=bind",	
+	"mounts": [		
+		"source=${localWorkspaceFolder}/.devcontainer/.bashrc,target=/home/glue_user/.bashrc.1,readonly,type=bind",
+		"source=${localEnv:USERPROFILE}${localEnv:HOME}/.aws,target=/home/glue_user/.aws,readonly,type=bind"
+	],
+	"containerEnv": {
+		"DISABLE_SSL": "true"		
+	},
+	"postCreateCommand": "bash ./.devcontainer/create.sh",
+	"postAttachCommand": "bash ./.devcontainer/attach.sh",
+	"forwardPorts": [4040, 18080],
+	"customizations": {
+        "vscode": {
+            "extensions":[
+				"ms-python.vscode-pylance",
+				"ms-python.python",
+				"ms-python.flake8",
+				"ms-python.black-formatter",
+				"ms-python.isort",
+				"tamasfe.even-better-toml"
+			],
+			"settings": {
+				"python.envFile": "${containerWorkspaceFolder}/.env",
+				"python.defaultInterpreterPath": "./.venv/bin/python",
+				"flake8.enabled": true,
+				"flake8.importStrategy": "fromEnvironment",
+				"python.analysis.extraPaths": [
+					"/home/glue_user/aws-glue-libs/PyGlue.zip:/home/glue_user/spark/python/lib/py4j-0.10.9-src.zip:/home/glue_user/spark/python/"
+				],
+				"python.formatting.provider": "none",
+				"[python]": {					
+					"editor.defaultFormatter": "ms-python.black-formatter",
+					"editor.formatOnSave": true,
+					"editor.codeActionsOnSave": {
+						"source.organizeImports": "always"
+					}			
+				}
+			}
+        }
+	}
+}

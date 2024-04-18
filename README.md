@@ -1,4 +1,4 @@
-# Nome do projeto
+# Glue DEV Environment
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/brunoazex/glue-dev-env?style=for-the-badge)
 ![GitHub language count](https://img.shields.io/github/languages/count/brunoazex/glue-dev-env?style=for-the-badge)

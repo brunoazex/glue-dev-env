@@ -103,6 +103,11 @@ class TestPipeline(unittest.TestCase):
                 glue.context,
                 "cache_2",
             ),
+            DynamicFrame.fromDF(
+                TestPipeline.spark.createDataFrame([], T.StructType([])),
+                glue.context,
+                "delta_2",
+            ),
         ]
         request_mock.post.return_value = unittest.mock.Mock(
             status_code=200, content=json.dumps(RESPONSE_FIXTURE)
@@ -134,6 +139,10 @@ class TestPipeline(unittest.TestCase):
             status="success",
             transformed_count=2,
             valid_rows=2,
+        )
+
+        expected.persist = pipeline.report.PersistSection(
+            raw_count=2, valid_rows=2, status="success"
         )
 
         # Act

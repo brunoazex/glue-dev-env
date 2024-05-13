@@ -10,28 +10,13 @@ from pyspark.sql import functions as F
 from pyspark.sql import types as T
 from toolz.functoolz import pipe
 
+from .schema import CACHE_SCHEMA, DELTA_COLUMNS, DELTA_SCHEMA
+
 report = pipeline.report.ProcessSection()
 logger = logging.getLogger("PROCESS")
 deterministic_udf = F.udf(deterministic_uuid, T.StringType())
 
-DELTA_S3_PATH = "delta/pipeline"
-DELTA_COLUMNS = ["code", "id", "group_id"]
-DELTA_SCHEMA = T.StructType(
-    [
-        T.StructField("code", T.StringType(), False),
-        T.StructField("id", T.StringType(), False),
-        T.StructField("sha2", T.StringType(), False),
-    ]
-)
 
-CACHE_S3_PATH = "cache/pipeline"
-CACHE_SCHEMA = T.StructType(
-    [
-        T.StructField("uuid", T.StringType(), False),
-        T.StructField("id", T.StringType(), False),
-        T.StructField("partition_ref", T.StringType(), False),
-    ]
-)
 MAX_REQUEST_COUNT = 499
 
 
@@ -39,7 +24,7 @@ def enrich_integration(raw_data: DataFrame) -> DataFrame:
     def load_cache() -> DataFrame:
         cache = pipeline.glue_context.create_dynamic_frame.from_options(
             connection_type="s3",
-            connection_options={"paths": [CACHE_S3_PATH]},
+            connection_options={"paths": [pipeline.config.CACHE_S3_PATH]},
             format="parquet",
         ).toDF()
         if cache.isEmpty():
@@ -76,7 +61,9 @@ def enrich_integration(raw_data: DataFrame) -> DataFrame:
                 )
                 .distinct()
             )
-            response_df.write.parquet(CACHE_S3_PATH, "append", ["partition_ref"])
+            response_df.write.parquet(
+                pipeline.config.CACHE_S3_PATH, "append", ["partition_ref"]
+            )
         elif response.status_code == 204:
             logger.warning(f"Page {page+1} does not have results")
         else:
@@ -108,7 +95,7 @@ def enrich_integration(raw_data: DataFrame) -> DataFrame:
 def filter_new_rows(raw_data: DataFrame) -> DataFrame:
     current_delta = pipeline.glue_context.create_dynamic_frame.from_options(
         connection_type="s3",
-        connection_options={"paths": [DELTA_S3_PATH]},
+        connection_options={"paths": [pipeline.config.DELTA_S3_PATH]},
         format="parquet",
     ).toDF()
 
@@ -136,7 +123,7 @@ def filter_new_rows(raw_data: DataFrame) -> DataFrame:
         )
     )
 
-    new_rows = calculated.filter(F.col("state") == "save").select("new.*", "sha2")
+    new_rows = calculated.filter(F.col("state") == "save").select("new.*")
     skipped_rows = calculated.filter(F.col("state") == "skip")
 
     report.new_count = new_rows.count()
@@ -145,9 +132,9 @@ def filter_new_rows(raw_data: DataFrame) -> DataFrame:
 
 
 def transform(raw_data: DataFrame) -> DataFrame:
-    transformed = raw_data.select(
-        F.col("uuid").alias("person_id"), "code", "group_id", "created_at"
-    ).withColumn("uuid", deterministic_udf(F.concat_ws("||", "person_id", "code")))
+    transformed = raw_data.withColumn(
+        "uuid", deterministic_udf(F.concat_ws("||", "uuid", "code"))
+    )
     report.transformed_count = transformed.count()
     return transformed
 

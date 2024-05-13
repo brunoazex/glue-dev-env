@@ -36,9 +36,18 @@ class ProcessSection(object):
 
 
 @dataclass
+class PersistSection(object):
+    raw_count: Optional[int] = None
+    valid_rows: Optional[int] = None
+    status: Optional[str] = "unknown"
+
+
+@dataclass
 class Report(object):
+    elapsed: Optional[float] = 0.0
     status: Optional[str] = "unknown"
     additional_info: Optional[str] = None
     load: Optional[LoaderSection] = LoaderSection()
     cleanup: Optional[CleanupSection] = CleanupSection()
     process: Optional[ProcessSection] = ProcessSection()
+    persist: Optional[PersistSection] = PersistSection()

@@ -3,7 +3,7 @@ import logging
 from awsglue.context import GlueContext
 
 from .report import Report
-from .steps import cleanup, load, process
+from .steps import cleanup, load, persist, process
 
 logger = logging.getLogger("PIPELINE")
 glue_context = None
@@ -17,6 +17,7 @@ def run(glue: GlueContext) -> Report:
         report.load = load.run()
         report.cleanup = cleanup.run()
         report.process = process.run()
+        report.persist = persist.run()
         report.status = "success"
     except Exception as exc:
         report.additional_info = str(exc)

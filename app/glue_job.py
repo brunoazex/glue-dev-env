@@ -1,31 +1,19 @@
 import sys
-from typing import Any
+from pyspark.sql import SparkSession
 from awsglue.context import GlueContext
 from awsglue.job import Job
 from awsglue.utils import getResolvedOptions
-from pyspark.context import SparkContext
+import pipeline
+import json
+from dataclasses import asdict
 
 
-class GlueJob:
-    def __init__(self, custom_args=[]):
-        self._custom_args = custom_args
+spark = SparkSession.builder.getOrCreate()
+sc = spark.sparkContext
+glue_context = GlueContext(sparkContext=sc)
+job = Job(glue_context=glue_context)
+glue_args = getResolvedOptions(args=sys.argv, options=["JOB_NAME"])
+job.init(glue_args["JOB_NAME"], glue_args)
 
-    def _start_glue(self):
-        self._args = getResolvedOptions(
-            args=sys.argv, options=["JOB_NAME"] + self._custom_args
-        )
-        self._sc = SparkContext.getOrCreate()
-        self._glue = GlueContext(sparkContext=self._sc)
-        self._job = Job(glue_context=self._glue)
-        self._job.init(self._args["JOB_NAME"], self._args)
-
-    def run(self) -> Any:
-        self._start_glue()
-        print("It Works!")
-        self._job.commit()
-        return True
-
-
-if __name__ == "__main__":
-    glue_job = GlueJob()
-    glue_job.run()
+report = pipeline.run(glue_context)
+print(json.dumps(asdict(report), indent=4))

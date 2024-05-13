@@ -11,8 +11,6 @@ from awsglue.job import Job
 from awsglue.utils import getResolvedOptions
 from pyspark.sql import SparkSession
 
-from app import GlueJob
-
 
 class TestGlueJob(unittest.TestCase):
     """
@@ -78,8 +76,8 @@ class TestGlueJob(unittest.TestCase):
             self._job.init(self._args["JOB_NAME"], self._args)
 
         super().setUp()
-        self.glue_job = GlueJob()
-        self.glue_job._start_glue = types.MethodType(fake_start_glue, self.glue_job)
+        # self.glue_job = GlueJob()
+        # self.glue_job._start_glue = types.MethodType(fake_start_glue, self.glue_job)
 
     def test_glue_job_runs_successfully(self):
         """

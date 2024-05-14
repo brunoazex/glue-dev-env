@@ -18,6 +18,4 @@ RUN if [ "${POETRY_VERSION}" != "none" ]; then \
     fi
 
 ADD . /app
-WORKDIR /app
-
 ENTRYPOINT ["run.sh"]

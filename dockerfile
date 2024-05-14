@@ -11,13 +11,13 @@ ARG HOME="/home/$USER"
 ARG POETRY_VERSION="none"
 ENV PATH="${HOME}/.local/bin:$PATH"
 
-ADD . /app
-WORKDIR /app
+
 
 RUN if [ "${POETRY_VERSION}" != "none" ]; then \
     curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 - ; \
     fi
 
-RUN poetry install
+ADD . /app
+WORKDIR /app
 
-ENTRYPOINT ["pytest"]
+ENTRYPOINT ["run.sh"]
